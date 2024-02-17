@@ -33,9 +33,9 @@ function buildWithQuartz {
 # Function to run when a change is detected
 function onChange {
   # Comparing the public folder size as an extremely basic check to see if the public folder has changed
-  preBuildPublicSize=$(du -s "public" | cut -f1)
+  preBuildPublicSize=$(du -s -b "public" | cut -f1)
   buildWithQuartz
-  postBuildPublicSize=$(du -s "public" | cut -f1)
+  postBuildPublicSize=$(du -s -b "public" | cut -f1)
   if [ "$preBuildPublicSize" != "$postBuildPublicSize" ]; then
     rsync -rv -e "ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no" public/ $RSYNC_TARGET
   else 
