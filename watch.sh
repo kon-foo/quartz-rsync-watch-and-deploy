@@ -37,7 +37,7 @@ function onChange {
   buildWithQuartz
   postBuildPublicSize=$(du -s "public" | cut -f1)
   if [ "$preBuildPublicSize" != "$postBuildPublicSize" ]; then
-    rsync -rv -e "ssh -i /root/.ssh/id_rsa" public/ $RSYNC_TARGET
+    rsync -rv -e "ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no" public/ $RSYNC_TARGET
   else 
     echo "No changes detected in public folder. Skipping rsync."
   fi
