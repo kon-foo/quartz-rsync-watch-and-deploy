@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  runner:
+    build: .
+    volumes:
+      - ./quartz-config/quartz.config.ts:/quartz/quartz.config.ts
+      - ./quartz-config/quartz.layout.ts:/quartz/quartz.layout.ts
+      - ./vault:/quartz/content
+      - ./your_private_key:/root/.ssh/id_rsa
+    env_file:
+      - .env
+    restart: unless-stopped
