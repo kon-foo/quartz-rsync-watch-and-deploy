@@ -46,7 +46,7 @@ function onChange {
   if [ "$preBuildPublicSize" != "$postBuildPublicSize" ]; then
     # run_with_date rsync -rv -e "ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no" public/ $RSYNC_TARGET
     mkdir test
-    run_with_date rsync -rv public/ test
+    run_with_date rsync -rv public/ $RSYNC_TARGET
   else 
     run_with_date echo "No changes detected in public folder. Skipping rsync."
   fi
