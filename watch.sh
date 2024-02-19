@@ -3,6 +3,13 @@
 # Path to the directory to monitor
 DIRECTORY="content"
 
+# Function to run a command and prepend date and time to its output
+run_with_date() {
+    "$@" | while IFS= read -r line; do
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - $line"
+    done
+}
+
 # Load environment variables from a .env file
 function loadEnv {
   if [ -f .env ]; then
@@ -16,16 +23,16 @@ function loadEnv {
 
   # Check for critical variables and throw an error if not set
   if [ -z "${RSYNC_TARGET}" ]; then
-    echo "Error: RSYNC_TARGET is not set in the .env file."
+    run_with_date echo "Error: RSYNC_TARGET is not set in the .env file."
     exit 1
   fi
 }
 
 # Function to build the site
 function buildWithQuartz {
-  echo "Building the site with Quartz..."
+  run_with_date echo "Building the site with Quartz..."
   cd /quartz
-  npx quartz build
+  run_with_date npx quartz build
   # Return to the original directory
   cd -
 }
@@ -37,19 +44,21 @@ function onChange {
   buildWithQuartz
   postBuildPublicSize=$(du -s -b "public" | cut -f1)
   if [ "$preBuildPublicSize" != "$postBuildPublicSize" ]; then
-    rsync -rv -e "ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no" public/ $RSYNC_TARGET
+    # run_with_date rsync -rv -e "ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no" public/ $RSYNC_TARGET
+    mkdir test
+    run_with_date rsync -rv public/ test
   else 
-    echo "No changes detected in public folder. Skipping rsync."
+    run_with_date echo "No changes detected in public folder. Skipping rsync."
   fi
 }
 
 # Load environment variables and set defaults
 loadEnv
-
 # Monitor the directory for changes and handle debouncing
+
 while true; do
-  if inotifywait -r -e modify,create,delete,move --timefmt '%d/%m/%Y %H:%M' --format '%T' $DIRECTORY --timeout $((DEBOUNCE_TIME * 1000)); then
-    echo "Change detected in $DIRECTORY. Waiting for $DEBOUNCE_TIME seconds to collect more changes..."
+  if inotifywait -r -e modify,create,delete,move --timefmt '%Y-%m-%d %H:%M:%S' --format '%T' $DIRECTORY --timeout $((DEBOUNCE_TIME * 1000)); then
+    run_with_date echo "Change detected in $DIRECTORY. Waiting for $DEBOUNCE_TIME seconds to collect more changes..."
     # Change order if you want to build immediately and then debounce. However, removing it entirely may cause issues.
     sleep $DEBOUNCE_TIME
     onChange
